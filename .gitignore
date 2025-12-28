@@ -21,3 +21,5 @@ certs/*
 # Custom Caddy addons (user configurations)
 caddy-addon/*.conf
 !caddy-addon/*.example
+hosts.txt
+welcome/data.json

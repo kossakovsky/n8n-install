@@ -145,6 +145,14 @@
     };
 
     // ============================================
+    // CONFIG - Global configuration loaded from data.json
+    // ============================================
+    let CONFIG = {
+        protocol: 'https', // Default, will be overridden by data.json
+        domain: ''
+    };
+
+    // ============================================
     // DATA - Service metadata and commands
     // ============================================
     const SERVICE_METADATA = {
@@ -771,7 +779,7 @@
         // External link (if hostname exists)
         if (serviceData.hostname) {
             const link = document.createElement('a');
-            link.href = `https://${serviceData.hostname}`;
+            link.href = `${CONFIG.protocol}://${serviceData.hostname}`;
             link.target = '_blank';
             link.rel = 'noopener';
             link.className = 'text-brand hover:text-brand-400 text-sm font-medium inline-flex items-center gap-1 group transition-colors';
@@ -1038,6 +1046,14 @@
         // Handle main data
         if (dataResult.status === 'fulfilled' && dataResult.value) {
             const data = dataResult.value;
+
+            // Update global config from data.json
+            if (data.protocol) {
+                CONFIG.protocol = data.protocol;
+            }
+            if (data.domain) {
+                CONFIG.domain = data.domain;
+            }
 
             // Update domain info
             if (domainInfo) {
