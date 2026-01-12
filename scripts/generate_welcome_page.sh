@@ -541,3 +541,30 @@ EOF
 
 log_success "Welcome page data generated at: $OUTPUT_FILE"
 log_info "Access it at: https://${WELCOME_HOSTNAME:-welcome.${USER_DOMAIN_NAME}}"
+
+# Generate changelog.json with CHANGELOG.md content
+CHANGELOG_JSON_FILE="$PROJECT_ROOT/welcome/changelog.json"
+CHANGELOG_SOURCE="$PROJECT_ROOT/CHANGELOG.md"
+
+if [ -f "$CHANGELOG_SOURCE" ]; then
+    # Read and escape content for JSON (preserve newlines as \n)
+    # Using awk for cross-platform compatibility (macOS + Linux)
+    CHANGELOG_CONTENT=$(awk '
+        BEGIN { ORS="" }
+        {
+            gsub(/\\/, "\\\\")      # Escape backslashes first
+            gsub(/"/, "\\\"")       # Escape double quotes
+            gsub(/\t/, "\\t")       # Escape tabs
+            gsub(/\r/, "")          # Remove carriage returns (CRLF → LF)
+            if (NR > 1) printf "\\n"
+            printf "%s", $0
+        }
+    ' "$CHANGELOG_SOURCE")
+
+    # Write changelog.json file
+    printf '{\n  "content": "%s"\n}\n' "$CHANGELOG_CONTENT" > "$CHANGELOG_JSON_FILE"
+
+    log_success "Changelog JSON generated at: $CHANGELOG_JSON_FILE"
+else
+    log_warning "CHANGELOG.md not found, skipping changelog.json generation"
+fi

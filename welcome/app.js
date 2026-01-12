@@ -136,6 +136,11 @@
         warning: (className = '') => `
             <svg class="${className}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>`,
+
+        changelog: (className = '') => `
+            <svg class="${className}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
             </svg>`
     };
 
@@ -844,6 +849,7 @@
     const servicesContainer = document.getElementById('services-container');
     const quickstartContainer = document.getElementById('quickstart-container');
     const commandsContainer = document.getElementById('commands-container');
+    const changelogContainer = document.getElementById('changelog-container');
     const domainInfo = document.getElementById('domain-info');
 
     /**
@@ -960,6 +966,26 @@
     }
 
     /**
+     * Render changelog content
+     */
+    function renderChangelog(content) {
+        if (!changelogContainer) return;
+        changelogContainer.innerHTML = '';
+
+        if (!content) {
+            changelogContainer.innerHTML = `
+                <p class="text-gray-500 text-center py-8">Changelog not available</p>
+            `;
+            return;
+        }
+
+        const pre = document.createElement('pre');
+        pre.className = 'text-sm text-gray-300 font-mono whitespace-pre-wrap break-words leading-relaxed';
+        pre.textContent = content;
+        changelogContainer.appendChild(pre);
+    }
+
+    /**
      * Render error state in services container
      */
     function renderServicesError() {
@@ -984,14 +1010,26 @@
         // Always render commands (static content)
         renderCommands();
 
-        try {
-            const response = await fetch('data.json');
+        // Fetch both JSON files in parallel for better performance
+        // Each fetch is handled independently - changelog failure won't affect main data
+        const [changelogResult, dataResult] = await Promise.allSettled([
+            fetch('changelog.json').then(r => r.ok ? r.json() : null),
+            fetch('data.json').then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+        ]);
 
-            if (!response.ok) {
-                throw new Error(`Failed to load data (${response.status})`);
+        // Handle changelog (independent - failures don't break the page)
+        if (changelogResult.status === 'fulfilled' && changelogResult.value?.content) {
+            renderChangelog(changelogResult.value.content);
+        } else {
+            if (changelogResult.status === 'rejected') {
+                console.error('Error loading changelog:', changelogResult.reason);
             }
+            renderChangelog(null);
+        }
 
-            const data = await response.json();
+        // Handle main data
+        if (dataResult.status === 'fulfilled' && dataResult.value) {
+            const data = dataResult.value;
 
             // Update domain info
             if (domainInfo) {
@@ -1009,9 +1047,8 @@
 
             // Render quick start
             renderQuickStart(data.quick_start);
-
-        } catch (error) {
-            console.error('Error loading data:', error);
+        } else {
+            console.error('Error loading data:', dataResult.reason);
 
             // Show error in UI
             renderServicesError();

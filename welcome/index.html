@@ -51,7 +51,7 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: rgba(17, 17, 17, 0.8);
+            background: transparent;
             border-radius: 5px;
         }
 
@@ -192,6 +192,23 @@
             </div>
             <div id="commands-container" class="bg-surface-100 rounded-xl border border-surface-400 p-6">
                 <!-- Commands will be injected here by JavaScript -->
+                <div class="animate-pulse h-32"></div>
+            </div>
+        </section>
+
+        <div class="gradient-line my-8" aria-hidden="true"></div>
+
+        <!-- Changelog Section -->
+        <section class="mb-16">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center"
+                    data-section-icon="changelog"></div>
+                <h2 class="text-2xl font-semibold text-white">Changelog</h2>
+            </div>
+            <div id="changelog-container"
+                 class="bg-surface-100 rounded-xl border border-surface-400 p-6 overflow-y-auto"
+                 style="max-height: 444px;">
+                <!-- Changelog content will be injected here by JavaScript -->
                 <div class="animate-pulse h-32"></div>
             </div>
         </section>
