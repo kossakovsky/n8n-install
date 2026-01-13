@@ -22,8 +22,8 @@ Cloudflare Tunnel **bypasses Caddy** and connects directly to your services. Thi
 
 1. Go to [Cloudflare One Dashboard](https://one.dash.cloudflare.com/)
 2. Navigate to **Networks** → **Connectors** → **Cloudflare Tunnels**
-3. Click **Create new cloudflared Tunnel**
-4. Choose **Cloudflared** connector and click **Next**
+3. Click **Create a tunnel**
+4. Select **Cloudflared** as the connector type and click **Next**
 5. Name your tunnel (e.g., "n8n-install") and click **Save tunnel**
 6. Copy the installation command shown - it contains your tunnel token
 
@@ -106,7 +106,7 @@ dig NS yourdomain.com +short
 
 #### 3. Configure Public Hostnames
 
-After DNS is configured, go to **Cloudflare Zero Trust** → **Networks** → **Tunnels** → your tunnel → **Public Hostname** tab. For each service you want to expose, click **Add a public hostname** and configure:
+After DNS is configured, go to **Cloudflare One Dashboard** → **Networks** → **Connectors** → **Cloudflare Tunnels** → your tunnel → **Public Hostname** tab. For each service you want to expose, click **Add a public hostname** and configure:
 
 | Service            | Public Hostname               | Service URL                  | Auth Notes          |
 | ------------------ | ----------------------------- | ---------------------------- | ------------------- |
@@ -122,6 +122,7 @@ After DNS is configured, go to **Cloudflare Zero Trust** → **Networks** → **
 | **LibreTranslate** | libretranslate.yourdomain.com | `http://libretranslate:5000` | ⚠️ Loses Caddy auth  |
 | **LightRAG**       | lightrag.yourdomain.com       | `http://lightrag:9621`       | No auth             |
 | **Neo4j**          | neo4j.yourdomain.com          | `http://neo4j:7474`          | Built-in login      |
+| **NocoDB**         | nocodb.yourdomain.com         | `http://nocodb:8080`         | Built-in login      |
 | **Open WebUI**     | webui.yourdomain.com          | `http://open-webui:8080`     | Built-in login      |
 | **PaddleOCR**      | paddleocr.yourdomain.com      | `http://paddleocr:8080`      | ⚠️ Loses Caddy auth  |
 | **Portainer**      | portainer.yourdomain.com      | `http://portainer:9000`      | Built-in login      |
@@ -134,6 +135,11 @@ After DNS is configured, go to **Cloudflare Zero Trust** → **Networks** → **
 | **Supabase** ¹     | supabase.yourdomain.com       | `http://kong:8000`           | Built-in login      |
 | **WAHA**           | waha.yourdomain.com           | `http://waha:3000`           | API key recommended |
 | **Weaviate**       | weaviate.yourdomain.com       | `http://weaviate:8080`       | API key recommended |
+| **Welcome Page** ² | welcome.yourdomain.com        | `http://caddy:80`            | ⚠️ Loses Caddy auth  |
+
+**Notes:**
+- ¹ Dify and Supabase use external compose files from adjacent directories
+- ² Welcome Page is served by Caddy as static content; tunnel proxies through Caddy
 
 **⚠️ Security Warning:**
 - Services marked **"Loses Caddy auth"** have basic authentication via Caddy that is bypassed by the tunnel. Use [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) or keep them internal.
@@ -181,7 +187,7 @@ You have two options for accessing your services:
 
 For services that lose Caddy's basic auth protection, you can add Cloudflare Access:
 
-1. In **Cloudflare One Dashboard** → **Access controls** → **Applications**
+1. In **Cloudflare One Dashboard** → **Access** → **Applications** (or **Access controls** → **Applications** depending on your dashboard version)
 2. Click **Add an application** → **Self-hosted**
 3. Configure:
    - **Application name**: e.g., "Prometheus"
