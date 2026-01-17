@@ -33,6 +33,7 @@ volumes:
   ragflow_minio_data:
   ragflow_mysql_data:
   ragflow_redis_data:
+  temporal_elasticsearch_data:
   valkey-data:
   weaviate_data:
 
@@ -764,6 +765,29 @@ services:
       - portainer_data:/data
       - ${DOCKER_SOCKET_LOCATION:-/var/run/docker.sock}:/var/run/docker.sock
 
+  temporal-elasticsearch:
+    image: elasticsearch:7.17.27
+    container_name: temporal-elasticsearch
+    profiles: ["postiz"]
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      cluster.routing.allocation.disk.threshold_enabled: "true"
+      cluster.routing.allocation.disk.watermark.low: 512mb
+      cluster.routing.allocation.disk.watermark.high: 256mb
+      cluster.routing.allocation.disk.watermark.flood_stage: 128mb
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xms256m -Xmx256m
+      xpack.security.enabled: "false"
+    volumes:
+      - temporal_elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
   temporal:
     image: temporalio/auto-setup:latest
     container_name: temporal
@@ -777,8 +801,13 @@ services:
       POSTGRES_SEEDS: postgres
       DB_PORT: 5432
       TEMPORAL_UINAMESPACE: default
+      ENABLE_ES: "true"
+      ES_SEEDS: temporal-elasticsearch
+      ES_VERSION: v7
     depends_on:
       postgres:
+        condition: service_healthy
+      temporal-elasticsearch:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "temporal operator cluster health --address $(hostname -i):7233 | grep -q SERVING || exit 1"]
