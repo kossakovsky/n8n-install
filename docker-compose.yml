@@ -781,7 +781,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "temporal operator cluster health | grep -q SERVING || exit 1"]
+      test: ["CMD-SHELL", "temporal operator cluster health --address $(hostname -i):7233 | grep -q SERVING || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
