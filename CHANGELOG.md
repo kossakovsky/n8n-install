@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-02-03
+
+### Fixed
+- **n8n** - Use static ffmpeg binaries for Alpine/musl compatibility (fixes glibc errors)
+
 ## [1.2.4] - 2026-01-30
 
 ### Fixed
