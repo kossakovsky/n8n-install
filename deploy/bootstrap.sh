@@ -4,6 +4,15 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+if docker compose version >/dev/null 2>&1; then
+    DC=(docker compose)
+elif command -v docker-compose >/dev/null 2>&1; then
+    DC=(docker-compose)
+else
+    echo "Docker Compose is not installed. Install Docker Compose plugin or docker-compose." >&2
+    exit 1
+fi
+
 if [[ ! -f .env ]]; then
     cp .env.example .env
     echo "Created .env from .env.example"
@@ -12,12 +21,12 @@ if [[ ! -f .env ]]; then
 fi
 
 echo "Validating docker compose config..."
-docker compose config >/dev/null
+"${DC[@]}" config >/dev/null
 
 echo "Pulling images..."
-docker compose pull
+"${DC[@]}" pull
 
 echo "Starting services..."
-docker compose up -d
+"${DC[@]}" up -d
 
 echo "Done. Check status with: docker compose ps"
