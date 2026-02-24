@@ -1,0 +1,40 @@
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:latest
+    container_name: changedetection
+    profiles: ["future-changedetection"]
+    restart: unless-stopped
+    environment:
+      BASE_URL: ${CHANGEDETECTION_BASE_URL:-}
+      PLAYWRIGHT_DRIVER_URL: ${CHANGEDETECTION_PLAYWRIGHT_DRIVER_URL:-ws://changedetection-browser:3000}
+      TZ: ${GENERIC_TIMEZONE:-America/New_York}
+    volumes:
+      - changedetection_data:/datastore
+    depends_on:
+      changedetection-browser:
+        condition: service_started
+
+  changedetection-browser:
+    image: browserless/chrome:latest
+    container_name: changedetection-browser
+    profiles: ["future-changedetection"]
+    restart: unless-stopped
+    environment:
+      PREBOOT_CHROME: "true"
+      MAX_CONCURRENT_SESSIONS: "5"
+      TOKEN: ${CHANGEDETECTION_BROWSER_TOKEN:-}
+
+  mtproto-bridge:
+    image: alpine:3.20
+    container_name: mtproto-bridge
+    profiles: ["future-mtproto"]
+    restart: unless-stopped
+    command: ["sh", "-c", "echo 'MTProto bridge stub container. Replace with production image.' && sleep infinity"]
+    environment:
+      MTBRIDGE_API_ID: ${MTBRIDGE_API_ID:-}
+      MTBRIDGE_API_HASH: ${MTBRIDGE_API_HASH:-}
+      MTBRIDGE_BOT_TOKEN: ${MTBRIDGE_BOT_TOKEN:-}
+      MTBRIDGE_PUBLIC_BASE_URL: ${MTBRIDGE_PUBLIC_BASE_URL:-}
+
+volumes:
+  changedetection_data:
