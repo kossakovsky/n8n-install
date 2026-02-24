@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- **Profy storage profile** - Add dedicated MinIO (`profy-storage`) with bucket auto-init and read-only Caddy route via `STORAGE_HOSTNAME`
+
 ## [1.2.6] - 2026-02-10
 
 ### Changed

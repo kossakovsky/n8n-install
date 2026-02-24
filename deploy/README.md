@@ -27,17 +27,27 @@ docker compose up -d
 ## 2. Future services (disabled by default)
 
 Profiles are prepared but not enabled by default:
+- `profy-storage` (separate MinIO for Profy images)
 - `future-changedetection`
 - `future-mtproto`
 
 Validation commands:
 
 ```bash
+docker compose --profile profy-storage config
 docker compose --profile future-changedetection config
 docker compose --profile future-mtproto config
 ```
 
 Enable profile by adding it into `COMPOSE_PROFILES` in `.env`.
+
+For `profy-storage`, fill these variables in `.env`:
+- `MINIO_ENDPOINT` (default: `http://minio-profy:9000`)
+- `MINIO_ACCESS_KEY`
+- `MINIO_SECRET_KEY`
+- `MINIO_BUCKET` (default: `profy-images`)
+- `MINIO_PUBLIC_URL` (for example `https://storage.yourdomain.com/profy-images`)
+- `STORAGE_HOSTNAME` (for example `storage.yourdomain.com`)
 
 ## 3. Quick checks
 

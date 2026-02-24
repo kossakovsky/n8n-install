@@ -200,6 +200,7 @@ After successful installation, your services are up and running! Here's how to g
     - **RAGApp:** `ragapp.yourdomain.com`
     - **RAGFlow:** `ragflow.yourdomain.com`
     - **SearXNG:** `searxng.yourdomain.com`
+    - **Storage (MinIO API):** `storage.yourdomain.com` (optional, read-only public endpoint for file delivery)
     - **Supabase (Dashboard):** `supabase.yourdomain.com`
     - **WAHA:** `waha.yourdomain.com` (WhatsApp HTTP API; engines: WEBJS, NOWEB, GOWS)
     - **Weaviate:** `weaviate.yourdomain.com`
@@ -210,6 +211,12 @@ After successful installation, your services are up and running! Here's how to g
 - **How to enable**: Select “Python Runner” in the Service Selection Wizard during install/update, or add the profile manually: `COMPOSE_PROFILES=...,python-runner`.
 - **Where to put code**: Place your Python files in `python-runner/`. The default entry point is `python-runner/main.py`.
 - **Dependencies**: Add them to `python-runner/requirements.txt`; they will be installed automatically on container start.
+
+### Optional Utility: Separate MinIO for Public Assets
+
+- **What it is**: Dedicated MinIO instance for persistent public files (for example generated images), separate from internal service storage.
+- **How to enable**: Add profile manually: `COMPOSE_PROFILES=...,profy-storage`.
+- **Hostnames/vars**: Set `STORAGE_HOSTNAME`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_PUBLIC_URL` in `.env`.
 
 2.  **Explore n8n:**
 

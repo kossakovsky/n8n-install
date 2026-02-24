@@ -185,6 +185,18 @@ https://{$NEO4J_HOSTNAME}:7687 {
     reverse_proxy docling:5001
 }
 
+# Profy Storage (MinIO API, read-only public access)
+{$STORAGE_HOSTNAME} {
+    import service_tls
+
+    @readonly method GET HEAD OPTIONS
+    handle @readonly {
+        reverse_proxy minio-profy:9000
+    }
+
+    respond "Method not allowed" 405
+}
+
 # Welcome Page (Post-install dashboard)
 # HTTP block for Cloudflare Tunnel access (prevents redirect loop)
 http://{$WELCOME_HOSTNAME} {
