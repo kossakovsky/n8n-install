@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.2.7] - 2026-02-27
+
+### Fixed
+- **Docker** - Limit parallel image pulls (`COMPOSE_PARALLEL_LIMIT=3`) to prevent `TLS handshake timeout` errors when many services are selected
+
 ## [1.2.6] - 2026-02-10
 
 ### Changed
