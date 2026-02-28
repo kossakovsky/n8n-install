@@ -1,4 +1,5 @@
 volumes:
+  appsmith_data:
   caddy-config:
   caddy-data:
   comfyui_data:
@@ -144,6 +145,26 @@ x-n8n-worker-runner: &service-n8n-worker-runner
     N8N_RUNNERS_TASK_BROKER_URI: http://127.0.0.1:5679
 
 services:
+  appsmith:
+    image: appsmith/appsmith-ce:release
+    container_name: appsmith
+    profiles: ["appsmith"]
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      <<: *proxy-env
+      APPSMITH_ENCRYPTION_PASSWORD: ${APPSMITH_ENCRYPTION_PASSWORD}
+      APPSMITH_ENCRYPTION_SALT: ${APPSMITH_ENCRYPTION_SALT}
+      APPSMITH_DISABLE_TELEMETRY: "true"
+    volumes:
+      - appsmith_data:/appsmith-stacks
+    healthcheck:
+      test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
   flowise:
     image: flowiseai/flowise
     restart: unless-stopped
@@ -318,6 +339,7 @@ services:
       - caddy-data:/data:rw
       - caddy-config:/config:rw
     environment:
+      APPSMITH_HOSTNAME: ${APPSMITH_HOSTNAME}
       COMFYUI_HOSTNAME: ${COMFYUI_HOSTNAME}
       COMFYUI_PASSWORD_HASH: ${COMFYUI_PASSWORD_HASH}
       COMFYUI_USERNAME: ${COMFYUI_USERNAME}

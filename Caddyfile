@@ -8,6 +8,12 @@
 # Custom: Run 'make setup-tls' to use your own certificates
 import /etc/caddy/addons/tls-snippet.conf
 
+# Appsmith
+{$APPSMITH_HOSTNAME} {
+    import service_tls
+    reverse_proxy appsmith:80
+}
+
 # N8N
 {$N8N_HOSTNAME} {
     import service_tls

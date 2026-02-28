@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-02-27
+
+### Added
+- **Appsmith** - Low-code platform for building internal tools, dashboards, and admin panels
+
 ## [1.2.8] - 2026-02-27
 
 ### Fixed

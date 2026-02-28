@@ -79,6 +79,9 @@ echo ""
 echo -e "  ${WHITE}2.${NC} Store the Welcome Page credentials securely"
 echo ""
 echo -e "  ${WHITE}3.${NC} Configure services as needed:"
+if is_profile_active "appsmith"; then
+    echo -e "     ${GREEN}*${NC} ${WHITE}Appsmith${NC}: Create admin account on first login (may take a few minutes to start)"
+fi
 if is_profile_active "n8n"; then
     echo -e "     ${GREEN}*${NC} ${WHITE}n8n${NC}: Complete first-run setup with your email"
 fi

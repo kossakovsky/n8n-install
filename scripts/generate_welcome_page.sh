@@ -27,6 +27,19 @@ GENERATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 # Build services array - each entry is a formatted JSON block
 declare -a SERVICES_ARRAY
 
+# Appsmith
+if is_profile_active "appsmith"; then
+    SERVICES_ARRAY+=("    \"appsmith\": {
+      \"hostname\": \"$(json_escape "$APPSMITH_HOSTNAME")\",
+      \"credentials\": {
+        \"note\": \"Create your account on first login\"
+      },
+      \"extra\": {
+        \"docs\": \"https://docs.appsmith.com\"
+      }
+    }")
+fi
+
 # n8n
 if is_profile_active "n8n"; then
     N8N_WORKER_COUNT_VAL="${N8N_WORKER_COUNT:-1}"
@@ -515,6 +528,16 @@ if is_profile_active "databasus"; then
       \"step\": $STEP_NUM,
       \"title\": \"Configure database backups\",
       \"description\": \"Set up Databasus for automated database backups\"
+    }")
+    ((STEP_NUM++))
+fi
+
+# Set up Appsmith (if appsmith active)
+if is_profile_active "appsmith"; then
+    QUICK_START_ARRAY+=("    {
+      \"step\": $STEP_NUM,
+      \"title\": \"Set up Appsmith\",
+      \"description\": \"Create your admin account and build your first app\"
     }")
     ((STEP_NUM++))
 fi

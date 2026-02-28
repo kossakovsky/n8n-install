@@ -148,6 +148,14 @@
     // DATA - Service metadata and commands
     // ============================================
     const SERVICE_METADATA = {
+        'appsmith': {
+            name: 'Appsmith',
+            description: 'Low-code Internal Tools',
+            icon: 'AS',
+            color: 'bg-[#5f2dde]',
+            category: 'tools',
+            docsUrl: 'https://docs.appsmith.com'
+        },
         'n8n': {
             name: 'n8n',
             description: 'Workflow Automation',

@@ -134,6 +134,11 @@ if is_profile_active "databasus"; then
     check_image_update "databasus" "databasus/databasus:latest"
 fi
 
+if is_profile_active "appsmith"; then
+    log_subheader "Appsmith"
+    check_image_update "appsmith" "appsmith/appsmith-ce:release"
+fi
+
 # Summary
 log_divider
 echo ""

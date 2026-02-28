@@ -38,6 +38,7 @@ current_profiles_for_matching=",$CURRENT_PROFILES_VALUE,"
 # --- Define available services and their descriptions ---
 # Base service definitions (tag, description)
 base_services_data=(
+    "appsmith" "Appsmith (Low-code Platform for Internal Tools & Dashboards)"
     "cloudflare-tunnel" "Cloudflare Tunnel (Zero-Trust Secure Access)"
     "comfyui" "ComfyUI (Node-based Stable Diffusion UI)"
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"

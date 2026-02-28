@@ -74,6 +74,8 @@ USER_INPUT_VARS=(
 # Variables to generate: varName="type:length"
 # Types: password (alphanum), secret (base64), hex, base64, alphanum
 declare -A VARS_TO_GENERATE=(
+    ["APPSMITH_ENCRYPTION_PASSWORD"]="password:32"
+    ["APPSMITH_ENCRYPTION_SALT"]="password:32"
     ["CLICKHOUSE_PASSWORD"]="password:32"
     ["COMFYUI_PASSWORD"]="password:32" # Added ComfyUI basic auth password
     ["DASHBOARD_PASSWORD"]="password:32" # Supabase Dashboard

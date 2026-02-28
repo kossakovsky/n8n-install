@@ -56,6 +56,8 @@ This setup provides a comprehensive suite of cutting-edge services, all pre-conf
 
 The installer also makes the following powerful open-source tools **available for you to select and deploy** via an interactive wizard during setup:
 
+✅ [**Appsmith**](https://www.appsmith.com/) - An open-source low-code platform for building internal tools, dashboards, and admin panels with a drag-and-drop UI builder.
+
 ✅ [**n8n**](https://n8n.io/) - A low-code platform with over 400 integrations and advanced AI components to automate workflows.
 
 ✅ [**ComfyUI**](https://github.com/comfyanonymous/ComfyUI) - A powerful, node-based UI for Stable Diffusion workflows. Build and run image-generation pipelines visually, with support for custom nodes and extensions.
@@ -179,6 +181,7 @@ After successful installation, your services are up and running! Here's how to g
     The installation script provided a summary report with all access URLs and credentials. Please refer to that report. The main services will be available at the following addresses (replace `yourdomain.com` with your actual domain):
 
     - **n8n:** `n8n.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report. You may be prompted to change this password on first login.)
+    - **Appsmith:** `appsmith.yourdomain.com` (Low-code app builder)
     - **ComfyUI:** `comfyui.yourdomain.com` (Node-based Stable Diffusion UI)
     - **Databasus:** `databasus.yourdomain.com`
     - **Dify:** `dify.yourdomain.com` (AI application development platform with comprehensive LLMOps capabilities)
