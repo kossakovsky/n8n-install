@@ -353,6 +353,7 @@ get_dify_compose() {
 }
 
 # Build array of all active compose files (main + external services)
+# Appends docker-compose.override.yml last if it exists (user overrides, highest precedence)
 # IMPORTANT: Requires COMPOSE_PROFILES to be set before calling (via load_env)
 # Usage: build_compose_files_array; docker compose "${COMPOSE_FILES[@]}" up -d
 # Result is stored in global COMPOSE_FILES array
@@ -368,6 +369,12 @@ build_compose_files_array() {
     fi
     if path=$(get_dify_compose); then
         COMPOSE_FILES+=("-f" "$path")
+    fi
+
+    # Include user overrides last (highest precedence)
+    local override="$PROJECT_ROOT/docker-compose.override.yml"
+    if [ -f "$override" ]; then
+        COMPOSE_FILES+=("-f" "$override")
     fi
 }
 

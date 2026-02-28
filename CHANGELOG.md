@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-02-27
+
+### Fixed
+- **Docker Compose** - Respect `docker-compose.override.yml` for user customizations (#44). All compose file assembly points now include the override file when present.
+
 ## [1.3.1] - 2026-02-27
 
 ### Fixed

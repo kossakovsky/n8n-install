@@ -195,6 +195,11 @@ def stop_existing_containers():
     if os.path.exists(n8n_workers_compose_path):
         cmd.extend(["-f", n8n_workers_compose_path])
 
+    # Include user overrides if present
+    override_path = "docker-compose.override.yml"
+    if os.path.exists(override_path):
+        cmd.extend(["-f", override_path])
+
     cmd.extend(["down"])
     run_command(cmd)
 
@@ -229,6 +234,11 @@ def start_local_ai():
     n8n_workers_compose_path = "docker-compose.n8n-workers.yml"
     if os.path.exists(n8n_workers_compose_path):
         compose_files.extend(["-f", n8n_workers_compose_path])
+
+    # Include user overrides if present (must be last for highest precedence)
+    override_path = "docker-compose.override.yml"
+    if os.path.exists(override_path):
+        compose_files.extend(["-f", override_path])
 
     # Explicitly build services and pull newer base images first.
     print("Checking for newer base images and building services...")

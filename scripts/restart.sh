@@ -10,6 +10,7 @@
 #   - docker-compose.n8n-workers.yml (if exists and n8n profile active)
 #   - supabase/docker/docker-compose.yml (if exists and supabase profile active)
 #   - dify/docker/docker-compose.yaml (if exists and dify profile active)
+#   - docker-compose.override.yml (if exists, user overrides with highest precedence)
 #
 # Usage: bash scripts/restart.sh
 # =============================================================================
@@ -70,6 +71,10 @@ fi
 MAIN_COMPOSE_FILES=("-f" "$PROJECT_ROOT/docker-compose.yml")
 if path=$(get_n8n_workers_compose); then
     MAIN_COMPOSE_FILES+=("-f" "$path")
+fi
+OVERRIDE_COMPOSE="$PROJECT_ROOT/docker-compose.override.yml"
+if [ -f "$OVERRIDE_COMPOSE" ]; then
+    MAIN_COMPOSE_FILES+=("-f" "$OVERRIDE_COMPOSE")
 fi
 
 # Start main services
