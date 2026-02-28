@@ -1030,10 +1030,10 @@ services:
       REDIS_HOST: ragflow-redis
       REDIS_PASSWORD: ${RAGFLOW_REDIS_PASSWORD}
       REDIS_PORT: 6379
-      SVR_HTTP_PORT: 80
+      SVR_HTTP_PORT: 9380
     volumes:
       - ragflow_data:/ragflow
-      - ./ragflow/nginx.conf:/etc/nginx/sites-available/default:ro
+      - ./ragflow/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       ragflow-elasticsearch:
         condition: service_healthy

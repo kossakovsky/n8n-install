@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.2.8] - 2026-02-27
+
+### Fixed
+- **Ragflow** - Fix nginx config mount path (`sites-available/default` → `conf.d/default.conf`) to resolve default "Welcome to nginx!" page (#41)
+
 ## [1.2.7] - 2026-02-27
 
 ### Fixed
