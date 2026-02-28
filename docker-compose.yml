@@ -906,6 +906,7 @@ services:
     volumes:
       - postiz-config:/config/
       - postiz-uploads:/uploads/
+      - ./postiz.env:/app/.env:ro
     depends_on:
       postgres:
         condition: service_healthy

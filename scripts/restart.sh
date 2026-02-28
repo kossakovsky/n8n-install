@@ -34,6 +34,20 @@ EXTERNAL_SERVICE_INIT_DELAY=10
 # Build compose files array (sets global COMPOSE_FILES)
 build_compose_files_array
 
+# Ensure postiz.env exists if Postiz is enabled (required for volume mount)
+# This is a safety net for cases where restart runs without start_services.py
+# (e.g., git pull + make restart instead of make update)
+if is_profile_active "postiz"; then
+    if [ -d "$PROJECT_ROOT/postiz.env" ]; then
+        log_warning "postiz.env exists as a directory (created by Docker). Removing and recreating as file."
+        rm -rf "$PROJECT_ROOT/postiz.env"
+        touch "$PROJECT_ROOT/postiz.env"
+    elif [ ! -f "$PROJECT_ROOT/postiz.env" ]; then
+        log_warning "postiz.env not found, creating empty file. Run 'make update' to generate full config."
+        touch "$PROJECT_ROOT/postiz.env"
+    fi
+fi
+
 log_info "Restarting services..."
 log_info "Using compose files: ${COMPOSE_FILES[*]}"
 

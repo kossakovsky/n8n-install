@@ -166,6 +166,76 @@ def prepare_dify_env():
     with open(env_path, 'w') as f:
         f.write("\n".join(lines) + "\n")
 
+def is_postiz_enabled():
+    """Check if 'postiz' is in COMPOSE_PROFILES in .env file."""
+    env_values = dotenv_values(".env")
+    compose_profiles = env_values.get("COMPOSE_PROFILES", "")
+    return "postiz" in compose_profiles.split(',')
+
+def prepare_postiz_env():
+    """Generate postiz.env for mounting as /app/.env in Postiz container.
+
+    The Postiz image uses dotenv-cli (dotenv -e ../../.env) to load config.
+    Always regenerated to reflect current .env values.
+    """
+    if not is_postiz_enabled():
+        print("Postiz is not enabled, skipping env preparation.")
+        return
+
+    print("Generating postiz.env from root .env values...")
+    root_env = dotenv_values(".env")
+
+    hostname = root_env.get("POSTIZ_HOSTNAME", "")
+    frontend_url = f"https://{hostname}" if hostname else ""
+
+    env_vars = {
+        "BACKEND_INTERNAL_URL": "http://localhost:3000",
+        "DATABASE_URL": f"postgresql://postgres:{root_env.get('POSTGRES_PASSWORD', '')}@postgres:5432/{root_env.get('POSTIZ_DB_NAME', 'postiz')}?schema=postiz",
+        "DISABLE_REGISTRATION": root_env.get("POSTIZ_DISABLE_REGISTRATION", "false"),
+        "FRONTEND_URL": frontend_url,
+        "IS_GENERAL": "true",
+        "JWT_SECRET": root_env.get("JWT_SECRET", ""),
+        "MAIN_URL": frontend_url,
+        "NEXT_PUBLIC_BACKEND_URL": f"{frontend_url}/api" if frontend_url else "",
+        "NEXT_PUBLIC_UPLOAD_DIRECTORY": "/uploads",
+        "REDIS_URL": "redis://redis:6379",
+        "STORAGE_PROVIDER": "local",
+        "TEMPORAL_ADDRESS": "temporal:7233",
+        "UPLOAD_DIRECTORY": "/uploads",
+    }
+
+    # Social media API keys — direct pass-through from root .env
+    social_keys = [
+        "X_API_KEY", "X_API_SECRET",
+        "LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET",
+        "REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET",
+        "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET",
+        "BEEHIIVE_API_KEY", "BEEHIIVE_PUBLICATION_ID",
+        "THREADS_APP_ID", "THREADS_APP_SECRET",
+        "FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET",
+        "YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET",
+        "TIKTOK_CLIENT_ID", "TIKTOK_CLIENT_SECRET",
+        "PINTEREST_CLIENT_ID", "PINTEREST_CLIENT_SECRET",
+        "DRIBBBLE_CLIENT_ID", "DRIBBBLE_CLIENT_SECRET",
+        "DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET",
+        "DISCORD_BOT_TOKEN_ID",
+        "SLACK_ID", "SLACK_SECRET", "SLACK_SIGNING_SECRET",
+        "MASTODON_URL", "MASTODON_CLIENT_ID", "MASTODON_CLIENT_SECRET",
+    ]
+    for key in social_keys:
+        env_vars[key] = root_env.get(key, "")
+
+    # Handle case where Docker created postiz.env as a directory
+    if os.path.isdir("postiz.env"):
+        print("Warning: postiz.env exists as a directory (likely created by Docker). Removing...")
+        shutil.rmtree("postiz.env")
+
+    with open("postiz.env", 'w') as f:
+        for key, value in env_vars.items():
+            f.write(f'{key}="{value}"\n')
+
+    print(f"Generated postiz.env with {len(env_vars)} variables.")
+
 def stop_existing_containers():
     """Stop and remove existing containers for our unified project ('localai')."""
     print("Stopping and removing existing containers for the unified project 'localai'...")
@@ -404,7 +474,10 @@ def main():
     # Generate SearXNG secret key and check docker-compose.yml
     generate_searxng_secret_key()
     check_and_fix_docker_compose_for_searxng()
-    
+
+    # Generate Postiz env file
+    prepare_postiz_env()
+
     stop_existing_containers()
     
     # Start Supabase first

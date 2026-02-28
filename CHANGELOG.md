@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.3.3] - 2026-02-27
+
+### Fixed
+- **Postiz** - Generate `postiz.env` file to prevent `dotenv-cli` crash in backend container (#40). Handles edge case where Docker creates the file as a directory, and quotes values to prevent misparses.
+
 ## [1.3.2] - 2026-02-27
 
 ### Fixed
