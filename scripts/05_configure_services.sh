@@ -27,6 +27,10 @@ init_paths
 # Ensure .env exists
 ensure_file_exists "$ENV_FILE"
 
+# Load COMPOSE_PROFILES early so is_profile_active works for all sections
+COMPOSE_PROFILES_VALUE="$(read_env_var COMPOSE_PROFILES)"
+COMPOSE_PROFILES="$COMPOSE_PROFILES_VALUE"
+
 # ----------------------------------------------------------------
 # Prompt for OpenAI API key (optional) using .env value as source of truth
 # ----------------------------------------------------------------
@@ -48,87 +52,89 @@ fi
 # ----------------------------------------------------------------
 # Logic for n8n workflow import (RUN_N8N_IMPORT)
 # ----------------------------------------------------------------
-log_subheader "n8n Workflow Import"
-final_run_n8n_import_decision="false"
-require_whiptail
-if wt_yesno "Import n8n Workflows" "Import ~300 ready-made n8n workflows now? This can take ~30 minutes." "no"; then
-    final_run_n8n_import_decision="true"
-else
+if is_profile_active "n8n"; then
+    log_subheader "n8n Workflow Import"
     final_run_n8n_import_decision="false"
-fi
+    require_whiptail
+    if wt_yesno "Import n8n Workflows" "Import ~300 ready-made n8n workflows now? This can take ~30 minutes." "no"; then
+        final_run_n8n_import_decision="true"
+    else
+        final_run_n8n_import_decision="false"
+    fi
 
-# Persist RUN_N8N_IMPORT to .env
-write_env_var "RUN_N8N_IMPORT" "$final_run_n8n_import_decision"
+    # Persist RUN_N8N_IMPORT to .env
+    write_env_var "RUN_N8N_IMPORT" "$final_run_n8n_import_decision"
+else
+    write_env_var "RUN_N8N_IMPORT" "false"
+fi
 
 
 # ----------------------------------------------------------------
 # Prompt for number of n8n workers
 # ----------------------------------------------------------------
-log_subheader "n8n Worker Configuration"
-EXISTING_N8N_WORKER_COUNT="$(read_env_var N8N_WORKER_COUNT)"
-require_whiptail
-if [[ -n "$EXISTING_N8N_WORKER_COUNT" ]]; then
-    N8N_WORKER_COUNT_CURRENT="$EXISTING_N8N_WORKER_COUNT"
-    N8N_WORKER_COUNT_INPUT_RAW=$(wt_input "n8n Workers (instances)" "Enter new number of n8n workers, or leave as current ($N8N_WORKER_COUNT_CURRENT)." "") || true
-    if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
-        N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
-    else
-        if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
-            N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))"
-            if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
-                if wt_yesno "Confirm Workers" "Update n8n workers to $N8N_WORKER_COUNT_TEMP?" "yes"; then
-                    N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
+if is_profile_active "n8n"; then
+    log_subheader "n8n Worker Configuration"
+    EXISTING_N8N_WORKER_COUNT="$(read_env_var N8N_WORKER_COUNT)"
+    require_whiptail
+    if [[ -n "$EXISTING_N8N_WORKER_COUNT" ]]; then
+        N8N_WORKER_COUNT_CURRENT="$EXISTING_N8N_WORKER_COUNT"
+        N8N_WORKER_COUNT_INPUT_RAW=$(wt_input "n8n Workers (instances)" "Enter new number of n8n workers, or leave as current ($N8N_WORKER_COUNT_CURRENT)." "") || true
+        if [[ -z "$N8N_WORKER_COUNT_INPUT_RAW" ]]; then
+            N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
+        else
+            if [[ "$N8N_WORKER_COUNT_INPUT_RAW" =~ ^0*[1-9][0-9]*$ ]]; then
+                N8N_WORKER_COUNT_TEMP="$((10#$N8N_WORKER_COUNT_INPUT_RAW))"
+                if [[ "$N8N_WORKER_COUNT_TEMP" -ge 1 ]]; then
+                    if wt_yesno "Confirm Workers" "Update n8n workers to $N8N_WORKER_COUNT_TEMP?" "yes"; then
+                        N8N_WORKER_COUNT="$N8N_WORKER_COUNT_TEMP"
+                    else
+                        N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
+                        log_info "Change declined. Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
+                    fi
                 else
+                    log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Number must be positive. Keeping $N8N_WORKER_COUNT_CURRENT."
                     N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
-                    log_info "Change declined. Keeping N8N_WORKER_COUNT at $N8N_WORKER_COUNT."
                 fi
             else
-                log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Number must be positive. Keeping $N8N_WORKER_COUNT_CURRENT."
+                log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Please enter a positive integer. Keeping $N8N_WORKER_COUNT_CURRENT."
                 N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
             fi
-        else
-            log_warning "Invalid input '$N8N_WORKER_COUNT_INPUT_RAW'. Please enter a positive integer. Keeping $N8N_WORKER_COUNT_CURRENT."
-            N8N_WORKER_COUNT="$N8N_WORKER_COUNT_CURRENT"
         fi
-    fi
-else
-    while true; do
-        N8N_WORKER_COUNT_INPUT_RAW=$(wt_input "n8n Workers" "Enter number of n8n workers to run (default 1)." "1") || true
-        N8N_WORKER_COUNT_CANDIDATE="${N8N_WORKER_COUNT_INPUT_RAW:-1}"
-        if [[ "$N8N_WORKER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
-            N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
-            if [[ "$N8N_WORKER_COUNT_VALIDATED" -ge 1 ]]; then
-                if wt_yesno "Confirm Workers" "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)?" "yes"; then
-                    N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
-                    break
+    else
+        while true; do
+            N8N_WORKER_COUNT_INPUT_RAW=$(wt_input "n8n Workers" "Enter number of n8n workers to run (default 1)." "1") || true
+            N8N_WORKER_COUNT_CANDIDATE="${N8N_WORKER_COUNT_INPUT_RAW:-1}"
+            if [[ "$N8N_WORKER_COUNT_CANDIDATE" =~ ^0*[1-9][0-9]*$ ]]; then
+                N8N_WORKER_COUNT_VALIDATED="$((10#$N8N_WORKER_COUNT_CANDIDATE))"
+                if [[ "$N8N_WORKER_COUNT_VALIDATED" -ge 1 ]]; then
+                    if wt_yesno "Confirm Workers" "Run $N8N_WORKER_COUNT_VALIDATED n8n worker(s)?" "yes"; then
+                        N8N_WORKER_COUNT="$N8N_WORKER_COUNT_VALIDATED"
+                        break
+                    fi
+                else
+                    log_error "Number of workers must be a positive integer."
                 fi
             else
-                log_error "Number of workers must be a positive integer."
+                log_error "Invalid input '$N8N_WORKER_COUNT_CANDIDATE'. Please enter a positive integer (e.g., 1, 2)."
             fi
-        else
-            log_error "Invalid input '$N8N_WORKER_COUNT_CANDIDATE'. Please enter a positive integer (e.g., 1, 2)."
-        fi
-    done
+        done
+    fi
+    # Ensure N8N_WORKER_COUNT is definitely set (should be by logic above)
+    N8N_WORKER_COUNT="${N8N_WORKER_COUNT:-1}"
+
+    # Persist N8N_WORKER_COUNT to .env
+    write_env_var "N8N_WORKER_COUNT" "$N8N_WORKER_COUNT"
+
+    # Generate worker-runner pairs configuration
+    # Each worker gets its own dedicated task runner sidecar
+    log_info "Generating n8n worker-runner pairs configuration..."
+    bash "$SCRIPT_DIR/generate_n8n_workers.sh"
 fi
-# Ensure N8N_WORKER_COUNT is definitely set (should be by logic above)
-N8N_WORKER_COUNT="${N8N_WORKER_COUNT:-1}"
-
-# Persist N8N_WORKER_COUNT to .env
-write_env_var "N8N_WORKER_COUNT" "$N8N_WORKER_COUNT"
-
-# Generate worker-runner pairs configuration
-# Each worker gets its own dedicated task runner sidecar
-log_info "Generating n8n worker-runner pairs configuration..."
-bash "$SCRIPT_DIR/generate_n8n_workers.sh"
 
 
 # ----------------------------------------------------------------
 # Cloudflare Tunnel Token (if cloudflare-tunnel profile is active)
 # ----------------------------------------------------------------
-COMPOSE_PROFILES_VALUE="$(read_env_var COMPOSE_PROFILES)"
-# Set COMPOSE_PROFILES for is_profile_active to work
-COMPOSE_PROFILES="$COMPOSE_PROFILES_VALUE"
-
 if is_profile_active "cloudflare-tunnel"; then
     log_subheader "Cloudflare Tunnel"
     existing_cf_token="$(read_env_var CLOUDFLARE_TUNNEL_TOKEN)"

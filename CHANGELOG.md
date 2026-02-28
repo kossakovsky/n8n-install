@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-02-27
+
+### Fixed
+- **Installer** - Skip n8n workflow import and worker configuration prompts when n8n profile is not selected
+
 ## [1.3.0] - 2026-02-27
 
 ### Added
