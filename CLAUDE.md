@@ -41,7 +41,8 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 - `scripts/download_top_workflows.sh`: Downloads community n8n workflows
 - `scripts/import_workflows.sh`: Imports workflows from `n8n/backup/workflows/` into n8n (used by `make import`)
 - `scripts/restart.sh`: Restarts services with proper compose file handling (used by `make restart`)
-- `scripts/setup_custom_tls.sh`: Configures custom TLS certificates (used by `make setup-tls`)
+- `scripts/setup_custom_tls.sh`: Configures custom TLS certificates (used by `make setup-tls`); supports `--remove` to revert to Let's Encrypt
+- `start_services.py`: Python orchestrator for service startup order, builds Docker images, handles external services (Supabase/Dify cloning, env preparation, startup), generates SearXNG secret key, stops existing containers. Uses `python-dotenv` (`dotenv_values`).
 
 **Project Name**: All docker-compose commands use `-p localai` (defined in Makefile as `PROJECT_NAME := localai`).
 
@@ -60,9 +61,9 @@ This is **n8n-install**, a Docker Compose-based installer that provides a compre
 7. `07_final_report.sh` - Display credentials and URLs
 8. `08_fix_permissions.sh` - Fix file ownership for non-root access
 
-The update flow (`scripts/update.sh`) similarly orchestrates: git fetch + reset → service selection → `apply_update.sh` → restart.
+The update flow (`scripts/update.sh`) similarly orchestrates: git fetch + reset → service selection → `apply_update.sh` → restart. During updates, `03_generate_secrets.sh --update` adds new variables from `.env.example` without regenerating existing ones (preserves user-set values).
 
-**Git update modes**: Default is `reset` (hard reset to origin). Set `GIT_MODE=merge` in `.env` for fork workflows (merges from upstream instead of hard reset). The `make git-pull` command uses merge mode.
+**Git update modes**: Default is `reset` (hard reset to origin). Set `GIT_MODE=merge` in `.env` for fork workflows (merges from upstream instead of hard reset). The `make git-pull` command uses merge mode. Git branch support is explicit: `GIT_SUPPORTED_BRANCHES=("main" "develop")` in `git.sh`; unknown branches warn and fall back to `main`.
 
 ## Common Development Commands
 
@@ -104,7 +105,7 @@ Follow this workflow when adding a new optional service (refer to `.claude/comma
 3. **.env.example**: Add `MYSERVICE_HOSTNAME=myservice.yourdomain.com` and credentials if using basic auth.
 4. **scripts/03_generate_secrets.sh**: Generate passwords and bcrypt hashes. Add to `VARS_TO_GENERATE` map.
 5. **scripts/04_wizard.sh**: Add service to `base_services_data` array for wizard selection.
-6. **scripts/databases.sh**: If service uses PostgreSQL, add database name to `INIT_DB_DATABASES` array.
+6. **scripts/databases.sh**: If service uses PostgreSQL, add database name to `INIT_DB_DATABASES` array. Database creation is idempotent (checks existence before creating). Note: Postiz also requires `temporal` and `temporal_visibility` databases.
 7. **scripts/generate_welcome_page.sh**: Add service to `SERVICES_ARRAY` for welcome dashboard.
 8. **welcome/app.js**: Add `SERVICE_METADATA` entry with name, description, icon, color, category.
 9. **scripts/07_final_report.sh**: Add service URL and credentials output using `is_profile_active "myservice"`.
@@ -165,9 +166,8 @@ This project uses [Semantic Versioning](https://semver.org/). When updating `CHA
 - **Template profile pattern**: `docker-compose.yml` defines `n8n-worker-template` and `n8n-runner-template` with `profiles: ["n8n-template"]` (never activated directly). `generate_n8n_workers.sh` uses these as templates to generate `docker-compose.n8n-workers.yml` with the actual worker/runner services.
 - **Scaling**: Change `N8N_WORKER_COUNT` in `.env` and run `bash scripts/generate_n8n_workers.sh`
 - **Code node libraries**: Configured via `n8n/n8n-task-runners.json` and `n8n/Dockerfile.runner`:
-  - JS packages installed via `pnpm add` in Dockerfile.runner
-  - Allowlist configured in `n8n-task-runners.json` (`NODE_FUNCTION_ALLOW_EXTERNAL`, `NODE_FUNCTION_ALLOW_BUILTIN`)
-  - Default packages: `cheerio`, `axios`, `moment`, `lodash`
+  - **JavaScript runner**: packages installed via `pnpm add` in Dockerfile.runner; allowlist in `n8n-task-runners.json` (`NODE_FUNCTION_ALLOW_EXTERNAL`, `NODE_FUNCTION_ALLOW_BUILTIN`); default packages: `cheerio`, `axios`, `moment`, `lodash`
+  - **Python runner**: also configured in `n8n-task-runners.json`; uses `/opt/runners/task-runner-python/.venv/bin/python` with `N8N_RUNNERS_STDLIB_ALLOW: "*"` and `N8N_RUNNERS_EXTERNAL_ALLOW: "*"`
 - Workflows can access the host filesystem via `/data/shared` (mapped to `./shared`)
 - `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` allows Code nodes to access environment variables
 
@@ -177,7 +177,8 @@ This project uses [Semantic Versioning](https://semver.org/). When updating `CHA
 - Hostnames are passed via environment variables (e.g., `N8N_HOSTNAME`, `FLOWISE_HOSTNAME`)
 - Basic auth uses bcrypt hashes generated by `scripts/03_generate_secrets.sh` via Caddy's hash command
 - Never add `ports:` to services in docker-compose.yml; let Caddy handle all external access
-- **Caddy Addons** (`caddy-addon/`): Extend Caddy config without modifying the main Caddyfile. Files matching `site-*.conf` are auto-imported. TLS is controlled via `tls-snippet.conf` (all service blocks use `import service_tls`). See `caddy-addon/README.md` for details.
+- **Caddy Addons** (`caddy-addon/`): Extend Caddy config without modifying the main Caddyfile. Files matching `site-*.conf` are auto-imported (gitignored, user-created). TLS is controlled via `tls-snippet.conf` (all service blocks use `import service_tls`). See `caddy-addon/README.md` for details.
+- Custom TLS certificates go in `certs/` directory (gitignored), referenced as `/etc/caddy/certs/` inside the container
 
 ### External Compose Files (Supabase/Dify)
 
@@ -187,6 +188,7 @@ Complex services like Supabase and Dify maintain their own upstream docker-compo
 - `scripts/utils.sh` provides `get_*_compose()` getter functions and `build_compose_files_array()` includes them
 - `stop_all_services()` in `start_services.py` checks compose file existence (not profile) to ensure cleanup when a profile is removed
 - All external compose files use the same project name (`-p localai`) so containers appear together
+- **`docker-compose.override.yml`**: User customizations file (gitignored). Both `start_services.py` and `build_compose_files_array()` in `utils.sh` auto-detect and include it last (highest precedence). Users can override any service property without modifying tracked files.
 
 ### Secret Generation
 
@@ -195,6 +197,7 @@ The `scripts/03_generate_secrets.sh` script:
 - Creates bcrypt password hashes using Caddy's `hash-password` command
 - Preserves existing user-provided values in `.env`
 - Supports different secret types via `VARS_TO_GENERATE` map: `password:32`, `jwt`, `api_key`, `base64:64`, `hex:32`
+- When called with `--update` flag (during updates), only adds new variables without regenerating existing ones
 
 ### Utility Functions (scripts/utils.sh)
 
@@ -229,10 +232,23 @@ Common profiles:
 - `langfuse`: Langfuse observability (includes ClickHouse, MinIO, worker, web)
 - `cpu`, `gpu-nvidia`, `gpu-amd`: Ollama hardware profiles (mutually exclusive)
 - `cloudflare-tunnel`: Cloudflare Tunnel for zero-trust access (see `cloudflare-instructions.md`)
+- `supabase`: Supabase BaaS (external compose, cloned at runtime; mutually exclusive with `dify`)
+- `dify`: Dify AI platform (external compose, cloned at runtime; mutually exclusive with `supabase`)
 - `gost`: HTTP/HTTPS proxy for routing AI service outbound traffic
 - `python-runner`: Internal Python execution environment (no external access)
+- `searxng`, `letta`, `lightrag`, `libretranslate`, `crawl4ai`, `docling`, `waha`, `comfyui`, `paddleocr`, `ragapp`, `gotenberg`, `postiz`: Additional optional services
 
 ## Architecture Patterns
+
+### Docker Compose YAML Anchors
+
+`docker-compose.yml` defines reusable anchors at the top:
+- `x-logging: &default-logging` - `json-file` with `max-size: 1m`, `max-file: 1`
+- `x-proxy-env: &proxy-env` - HTTP/HTTPS proxy vars from `GOST_PROXY_URL`/`GOST_NO_PROXY`
+- `x-n8n: &service-n8n` - Full n8n service definition (reused by workers via `extends`)
+- `x-ollama: &service-ollama` - Ollama service definition (reused by CPU/GPU variants)
+- `x-init-ollama: &init-ollama` - Ollama model pre-puller (auto-pulls `qwen2.5:7b-instruct-q4_K_M` and `nomic-embed-text`)
+- `x-n8n-worker-runner: &service-n8n-worker-runner` - Runner template for worker generation
 
 ### Healthchecks
 
@@ -310,6 +326,10 @@ Directories in `PRESERVE_DIRS` (defined in `scripts/utils.sh`) survive git updat
 
 These are backed up before `git reset --hard` and restored after.
 
+### Restart Behavior
+
+`scripts/restart.sh` stops all services first, then starts external stacks (Supabase/Dify) separately before the main stack (10s delay between). This is required because external compose files use relative volume paths that resolve from their own directory.
+
 ## Common Issues and Solutions
 
 ### Service won't start after adding
@@ -330,7 +350,11 @@ These are backed up before `git reset --hard` and restored after.
 ## File Locations
 
 - Shared files accessible by n8n: `./shared` (mounted as `/data/shared` in n8n)
+- n8n backup/workflows: `n8n/backup/workflows/` (mounted as `/backup` in n8n containers)
 - n8n storage: Docker volume `localai_n8n_storage`
+- Flowise storage: `~/.flowise` on host (mounted from user's home directory, not a named volume)
+- Custom TLS certificates: `certs/` (gitignored, mounted as `/etc/caddy/certs/`)
+- Caddy addon configs: `caddy-addon/site-*.conf` (gitignored, auto-imported)
 - Service-specific volumes: Defined in `volumes:` section at top of `docker-compose.yml`
 - Installation logs: stdout during script execution
 - Service logs: `docker compose -p localai logs <service>`
@@ -357,6 +381,10 @@ bash -n scripts/generate_n8n_workers.sh
 bash -n scripts/apply_update.sh
 bash -n scripts/update.sh
 bash -n scripts/install.sh
+bash -n scripts/restart.sh
+bash -n scripts/doctor.sh
+bash -n scripts/setup_custom_tls.sh
+bash -n scripts/docker_cleanup.sh
 ```
 
 ### Full Testing
