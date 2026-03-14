@@ -67,6 +67,7 @@ base_services_data=(
     "ragflow" "RAGFlow (Deep document understanding RAG engine)"
     "searxng" "SearXNG (Private Metasearch Engine)"
     "supabase" "Supabase (Backend as a Service)"
+    "uptime-kuma" "Uptime Kuma (Uptime Monitoring)"
     "waha" "WAHA – WhatsApp HTTP API (NOWEB engine)"
     "weaviate" "Weaviate (Vector Database with API Key Auth)"
 )

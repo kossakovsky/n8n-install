@@ -36,6 +36,7 @@ volumes:
   ragflow_redis_data:
   temporal_elasticsearch_data:
   valkey-data:
+  uptime_kuma_data:
   weaviate_data:
 
 # Shared logging configuration for services
@@ -380,6 +381,7 @@ services:
       SEARXNG_PASSWORD_HASH: ${SEARXNG_PASSWORD_HASH}
       SEARXNG_USERNAME: ${SEARXNG_USERNAME}
       SUPABASE_HOSTNAME: ${SUPABASE_HOSTNAME}
+      UPTIME_KUMA_HOSTNAME: ${UPTIME_KUMA_HOSTNAME}
       WAHA_HOSTNAME: ${WAHA_HOSTNAME}
       WEAVIATE_HOSTNAME: ${WEAVIATE_HOSTNAME}
       WEBUI_HOSTNAME: ${WEBUI_HOSTNAME}
@@ -1272,6 +1274,24 @@ services:
           "CMD-SHELL",
           "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:5001/docs > /dev/null || exit 1",
         ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    container_name: uptime-kuma
+    profiles: ["uptime-kuma"]
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      <<: *proxy-env
+      UPTIME_KUMA_WS_ORIGIN_CHECK: bypass
+    volumes:
+      - uptime_kuma_data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= wget -qO- http://localhost:3001/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5

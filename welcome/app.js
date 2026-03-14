@@ -420,6 +420,14 @@
             category: 'tools',
             docsUrl: 'https://docs.python.org'
         },
+        'uptime-kuma': {
+            name: 'Uptime Kuma',
+            description: 'Uptime Monitoring Dashboard',
+            icon: 'UK',
+            color: 'bg-[#5CDD8B]',
+            category: 'monitoring',
+            docsUrl: 'https://github.com/louislam/uptime-kuma'
+        },
         'cloudflare-tunnel': {
             name: 'Cloudflare Tunnel',
             description: 'Zero-Trust Network Access',

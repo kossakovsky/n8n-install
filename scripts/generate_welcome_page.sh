@@ -354,6 +354,16 @@ if is_profile_active "postiz"; then
     }")
 fi
 
+# Uptime Kuma
+if is_profile_active "uptime-kuma"; then
+    SERVICES_ARRAY+=("    \"uptime-kuma\": {
+      \"hostname\": \"$(json_escape "$UPTIME_KUMA_HOSTNAME")\",
+      \"credentials\": {
+        \"note\": \"Create account on first login\"
+      }
+    }")
+fi
+
 # WAHA
 if is_profile_active "waha"; then
     SERVICES_ARRAY+=("    \"waha\": {
