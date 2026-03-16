@@ -6,6 +6,7 @@
 
 ### Added
 - **Uptime Kuma** - Self-hosted uptime monitoring with 90+ notification services
+- **pgvector** - Switch PostgreSQL image to `pgvector/pgvector` for vector similarity search support
 
 ## [1.3.3] - 2026-02-27
 

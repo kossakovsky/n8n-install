@@ -72,7 +72,7 @@ echo ""
 
 # Core services (always checked)
 log_subheader "Core Services"
-check_image_update "postgres" "postgres:${POSTGRES_VERSION:-17}-alpine"
+check_image_update "postgres" "pgvector/pgvector:pg${POSTGRES_VERSION:-17}"
 check_image_update "redis" "valkey/valkey:8-alpine"
 check_image_update "caddy" "caddy:2-alpine"
 
