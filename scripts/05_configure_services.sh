@@ -181,7 +181,11 @@ fi
 # ----------------------------------------------------------------
 # Ensure Supabase Analytics targets the correct Postgres service name used by Supabase docker compose
 # ----------------------------------------------------------------
-write_env_var "POSTGRES_HOST" "db"
+if is_profile_active "supabase"; then
+    write_env_var "POSTGRES_HOST" "db"
+else
+    write_env_var "POSTGRES_HOST" "postgres"
+fi
 # ----------------------------------------------------------------
 
 log_success "Service configuration complete. .env updated at $ENV_FILE"
