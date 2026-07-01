@@ -709,6 +709,9 @@
             if (creds.api_key) {
                 section.appendChild(createCredentialRow('API Key', creds.api_key, true));
             }
+            if (creds.api_token) {
+                section.appendChild(createCredentialRow('API Token', creds.api_token, true));
+            }
             if (creds.user_token) {
                 section.appendChild(createCredentialRow('User Token', creds.user_token, true));
             }

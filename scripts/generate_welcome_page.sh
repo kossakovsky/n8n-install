@@ -409,15 +409,16 @@ if is_profile_active "gotenberg"; then
     }")
 fi
 
-# Ollama (internal only)
+# Ollama (internal, optionally exposed via Caddy with a Bearer token)
 if is_profile_active "cpu" || is_profile_active "gpu-nvidia" || is_profile_active "gpu-amd"; then
     SERVICES_ARRAY+=("    \"ollama\": {
-      \"hostname\": null,
+      \"hostname\": \"$(json_escape "$OLLAMA_HOSTNAME")\",
       \"credentials\": {
-        \"note\": \"Internal service only\"
+        \"api_token\": \"$(json_escape "$OLLAMA_CADDY_API_TOKEN")\"
       },
       \"extra\": {
-        \"internal_api\": \"http://ollama:11434\"
+        \"internal_api\": \"http://ollama:11434\",
+        \"recommendation\": \"External access requires header: Authorization: Bearer <API Token>\"
       }
     }")
 fi

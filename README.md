@@ -88,7 +88,7 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**NocoDB**](https://nocodb.com/) - An open source Airtable alternative that turns any database into a smart spreadsheet with a no-code interface for building collaborative apps.
 
-✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally.
+✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally. Optionally expose its API externally through Caddy under `OLLAMA_HOSTNAME`, protected by a generated Bearer token.
 
 ✅ [**Open WebUI**](https://openwebui.com/) - A user-friendly, ChatGPT-like interface to interact privately with your AI models and n8n agents.
 
@@ -196,6 +196,7 @@ After successful installation, your services are up and running! Here's how to g
     - **LightRAG:** `lightrag.yourdomain.com`
     - **Neo4j:** `neo4j.yourdomain.com`
     - **NocoDB:** `nocodb.yourdomain.com`
+    - **Ollama:** `ollama.yourdomain.com` (Optional local-LLM API; every request must send `Authorization: Bearer <OLLAMA_CADDY_API_TOKEN>`. A leaked token grants full control — including pulling/deleting models — not just inference.)
     - **Open WebUI:** `webui.yourdomain.com`
     - **PaddleOCR:** `paddleocr.yourdomain.com`
     - **Portainer:** `portainer.yourdomain.com` (Protected by Caddy basic auth; on first login, complete Portainer admin setup)
