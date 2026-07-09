@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- **Docker Compose** - Wrap all `${VARIABLE}` interpolations in double quotes to guard against YAML parsing issues with special characters in inline default values and keep the quoting style consistent across the file. No functional change: the rendered `docker compose config` output is identical (#70).
+
 ## [1.6.0] - 2026-07-01
 
 ### Added
