@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-07-09
+
 ### Changed
 - **Project renamed to Selfhost AI** - The repository moved from `kossakovsky/n8n-install` to [`kossakovsky/selfhost-ai`](https://github.com/kossakovsky/selfhost-ai) to reflect that the stack has grown well beyond n8n. GitHub redirects all old links and git remotes automatically, so existing installations keep working without changes; optionally update your remote with `git remote set-url origin https://github.com/kossakovsky/selfhost-ai`. The installer handles clones under both directory names.
 
