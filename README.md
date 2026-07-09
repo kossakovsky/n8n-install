@@ -192,7 +192,7 @@ After successful installation, your services are up and running! Here's how to g
     - **Docling:** `docling.yourdomain.com` (Universal document converter with REST API; web UI available at `/ui`)
     - **Flowise:** `flowise.yourdomain.com` (Log in with the email address you provided during installation and the initial password from the summary report.)
     - **Grafana:** `grafana.yourdomain.com`
-    - **Hermes Agent:** `hermes.yourdomain.com` (Dashboard; log in with the email you provided during installation and the password from the Welcome Page. Requires an LLM provider key: run `docker compose -p localai run --rm hermes setup`. OpenAI-compatible API at `hermes-api.yourdomain.com/v1` with `Authorization: Bearer <HERMES_API_SERVER_KEY>`; internally at `http://hermes:8642/v1`.)
+    - **Hermes Agent:** `hermes.yourdomain.com` (Dashboard; log in with the email you provided during installation and the password from the Welcome Page. Requires an LLM provider key: run `docker compose -p localai run --rm hermes setup`. OpenAI-compatible API at `hermes-api.yourdomain.com/v1` with `Authorization: Bearer <HERMES_API_SERVER_KEY>`; internally at `http://hermes:8642/v1`. To let the agent manage Docker containers, mount `/var/run/docker.sock` into the `hermes` service via `docker-compose.override.yml` — off by default because it grants root-equivalent host access.)
     - **Langfuse:** `langfuse.yourdomain.com`
     - **Letta:** `letta.yourdomain.com`
     - **LibreTranslate:** `translate.yourdomain.com`
