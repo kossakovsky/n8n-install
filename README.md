@@ -77,6 +77,7 @@ The installer also makes the following powerful open-source tools **available fo
 ✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.
 
 ✅ [**Hermes Agent**](https://github.com/NousResearch/hermes-agent) - An open-source autonomous AI agent by Nous Research with skills, persistent memory, MCP support, and multi-agent workflows. Includes a web dashboard and an OpenAI-compatible API that n8n workflows can call directly.
+
 ✅ [**InvokeAI**](https://invoke.ai/) - A professional creative engine for Stable Diffusion with a polished web UI, node-based workflow editor, inpainting/outpainting, and a REST API. Choose NVIDIA, AMD, or CPU hardware during install; models and outputs are stored in `./invokeai` on the host.
 
 ✅ [**Langfuse**](https://langfuse.com/) - An open-source platform to help you observe and understand how your AI agents are performing, making it easier to debug and improve them.

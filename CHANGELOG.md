@@ -12,6 +12,10 @@
 ### Changed
 - **Docker Compose** - Wrap all `${VARIABLE}` interpolations in double quotes to guard against YAML parsing issues with special characters in inline default values and keep the quoting style consistent across the file. No functional change: the rendered `docker compose config` output is identical (#70).
 
+### Fixed
+- **Installer** - Fail fast with a clear error when bcrypt hash generation fails during secret generation (affects all services behind Caddy basic auth). Previously an empty hash was written silently, which either broke Caddy config parsing on startup (taking down every service) or left the service behind a deny-all basic auth with no error surfaced.
+- **Hermes Agent** - Add the missing `make update-preview` entry and Cloudflare Tunnel routing rows for the Hermes hostnames; `make doctor` now reports an error when the `hermes` profile is active but `HERMES_API_SERVER_KEY` is empty (the API server refuses to start without it, leaving the container half-dead).
+
 ## [1.6.0] - 2026-07-01
 
 ### Added
