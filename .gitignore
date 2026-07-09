@@ -2,6 +2,7 @@
 .env
 .env.bak
 .env.test
+hermes/
 neo4j/
 invokeai/
 searxng/settings.yml
