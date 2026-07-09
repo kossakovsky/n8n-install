@@ -8,6 +8,7 @@ so they appear together in Docker Desktop.
 """
 
 import os
+import re
 import subprocess
 import shutil
 import time
@@ -67,8 +68,86 @@ def clone_supabase_repo():
     else:
         print("Supabase repository already exists, updating...")
         os.chdir("supabase")
+        # Discard any local postgres image pin so 'git pull' stays conflict-free;
+        # pin_supabase_postgres_image() re-applies it below after the pull.
+        subprocess.run(["git", "checkout", "HEAD", "--", "docker/docker-compose.yml"], check=False)
         run_command(["git", "pull"])
         os.chdir("..")
+    # Keep supabase-db on the Postgres major version matching existing data (issue #64).
+    pin_supabase_postgres_image()
+
+# Pins for supabase/postgres keyed by the data's major version. When Supabase
+# upstream bumps the postgres image to a new MAJOR version, existing data volumes
+# on an older major can no longer be read. Map the on-disk major to a known-good
+# image tag so 'make update' keeps existing databases working instead of silently
+# upgrading them into an unhealthy state.
+SUPABASE_POSTGRES_PINS = {
+    "15": "supabase/postgres:15.8.1.085",
+}
+
+def pin_supabase_postgres_image():
+    """Keep supabase-db on the Postgres major version matching existing data.
+
+    Supabase upstream periodically bumps supabase/postgres to a new major version
+    (e.g. 15 -> 17). PostgreSQL's on-disk format is not compatible across majors,
+    so a silent bump leaves supabase-db unhealthy on an existing data volume.
+    This reads the major version of the data already on disk and, if upstream now
+    wants a different major, pins the image in the freshly pulled compose file back
+    to a compatible tag. Fresh installs (no data yet) are left on upstream.
+    """
+    compose_path = os.path.join("supabase", "docker", "docker-compose.yml")
+    pg_version_path = os.path.join("supabase", "docker", "volumes", "db", "data", "PG_VERSION")
+
+    # No existing data (fresh install) or no compose yet: use upstream as-is.
+    if not (os.path.exists(compose_path) and os.path.exists(pg_version_path)):
+        return
+
+    with open(pg_version_path) as f:
+        data_major = f.read().strip()
+
+    with open(compose_path) as f:
+        content = f.read()
+
+    match = re.search(r"image:\s*supabase/postgres:(\S+)", content)
+    if not match:
+        # Data exists (checked above) but the image line is missing — e.g. an upstream
+        # compose refactor. Don't silently skip the safety pin; warn so the likely
+        # supabase-db breakage is traceable instead of a mysterious unhealthy container.
+        print(
+            f"WARNING: Existing Supabase data is on PG{data_major}, but the "
+            f"supabase/postgres image line was not found in {compose_path}. The version "
+            f"pin could not be applied; supabase-db may start on an incompatible major."
+        )
+        return
+
+    upstream_tag = match.group(1)
+    upstream_major = upstream_tag.split(".")[0]
+
+    # Same major as the data on disk: allow patch-level updates, nothing to pin.
+    if upstream_major == data_major:
+        return
+
+    pin = SUPABASE_POSTGRES_PINS.get(data_major)
+    if not pin:
+        print(
+            f"WARNING: Supabase upstream now uses postgres major {upstream_major}, "
+            f"but your data volume is on major {data_major} and no compatible pin is "
+            f"known. supabase-db may fail to start; a manual data migration is required."
+        )
+        return
+
+    # The regex requires a ':' immediately after "supabase/postgres", so it matches
+    # only the db service's image, not "supabase/postgres-meta" (the meta service).
+    # count=1 is belt-and-suspenders against any future second match.
+    new_content = content.replace(match.group(0), f"image: {pin}", 1)
+    with open(compose_path, "w") as f:
+        f.write(new_content)
+
+    print(
+        f"Pinned Supabase Postgres to {pin} to match your existing PG{data_major} data "
+        f"(upstream moved to {upstream_tag}). 'make update' will not upgrade the major "
+        f"version automatically; a manual migration is required to move to PG{upstream_major}."
+    )
 
 def prepare_supabase_env():
     """Copy .env to supabase/docker/.env, or sync new variables if it already exists."""

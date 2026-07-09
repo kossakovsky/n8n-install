@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added
+- **Cloudflare Tunnel** - Configurable transport protocol via `CLOUDFLARE_TUNNEL_PROTOCOL` in `.env`: `auto` (default, prefers QUIC with HTTP/2 fallback), `quic`, or `http2`. Set `http2` if your ISP or firewall blocks UDP and the tunnel is unstable (#69).
+
+## [1.6.0] - 2026-07-01
+
+### Added
+- **Ollama** - Optionally expose the Ollama API through Caddy under `OLLAMA_HOSTNAME`, protected by a generated Bearer token (`OLLAMA_CADDY_API_TOKEN`). Lets external tools reach locally-hosted models (native `/api/*` and OpenAI-compatible `/v1/*` endpoints); point DNS at the hostname to activate. Requests must send `Authorization: Bearer <token>`; unauthorized requests get `401`. A leaked token grants full control (including pulling/deleting models), so `make doctor` now reports an error if the hostname is set but the token is empty (#67).
+
+## [1.5.2] - 2026-06-27
+
+### Fixed
+- **n8n** - Fix `ERR_ERL_UNEXPECTED_X_FORWARDED_FOR` thrown by `express-rate-limit` behind the Caddy reverse proxy. The compose file set `N8N_TRUST_PROXY: true`, which n8n does not recognize, so Express `trust proxy` stayed `false`. Replaced it with the correct `N8N_PROXY_HOPS` (number of reverse proxy hops, default `1`, overridable via `.env` for multi-proxy setups) (#65).
+
+## [1.5.1] - 2026-06-17
+
+### Fixed
+- **Supabase** - Fix `make update` breaking existing databases by silently upgrading Postgres across major versions (e.g. `15.8.1.085` → `17.6.1.136`), which left `supabase-db` `unhealthy` and aborted the update. The installer now detects the major version of the data already on disk and pins `supabase/postgres` to a compatible tag after pulling upstream changes. Fresh installs continue to follow upstream (PG17); existing PG15 volumes stay on PG15 until you migrate manually (#64).
+
 ## [1.5.0] - 2026-05-17
 
 ### Fixed

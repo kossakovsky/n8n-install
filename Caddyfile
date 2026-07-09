@@ -26,6 +26,29 @@ import /etc/caddy/addons/tls-snippet.conf
     reverse_proxy open-webui:8080
 }
 
+# Ollama API (Bearer token protected — for external/programmatic access)
+# Served whenever OLLAMA_HOSTNAME resolves to this server — note a wildcard
+# *.domain DNS record exposes it automatically. Every request must send
+# 'Authorization: Bearer {$OLLAMA_CADDY_API_TOKEN}'; others get 401.
+{$OLLAMA_HOSTNAME} {
+    import service_tls
+
+    @authorized header Authorization "Bearer {$OLLAMA_CADDY_API_TOKEN}"
+
+    handle @authorized {
+        reverse_proxy ollama:11434 {
+            flush_interval -1
+            transport http {
+                compression off
+                response_header_timeout 10m
+                dial_timeout 10s
+            }
+        }
+    }
+
+    respond 401
+}
+
 # Flowise
 {$FLOWISE_HOSTNAME} {
     import service_tls

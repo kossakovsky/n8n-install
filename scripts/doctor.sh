@@ -58,6 +58,19 @@ if [ -f "$ENV_FILE" ]; then
     else
         count_warning "No service profiles are active"
     fi
+
+    # Ollama API exposure: when OLLAMA_HOSTNAME points at a real domain, the Caddy
+    # bearer-token gate needs a non-empty OLLAMA_CADDY_API_TOKEN to be usable. With
+    # an empty token the matcher becomes "Bearer " (trailing space); Go trims
+    # trailing whitespace from header values, so no request can ever match and the
+    # endpoint rejects everything with 401 (fail-closed, but non-functional).
+    if [ -n "$OLLAMA_HOSTNAME" ] && [ "$OLLAMA_HOSTNAME" != "yourdomain.com" ] && [[ "$OLLAMA_HOSTNAME" != *".yourdomain.com" ]]; then
+        if [ -n "$OLLAMA_CADDY_API_TOKEN" ]; then
+            count_ok "OLLAMA_CADDY_API_TOKEN is set (Ollama API is token-protected)"
+        else
+            count_error "OLLAMA_HOSTNAME is set but OLLAMA_CADDY_API_TOKEN is empty — the Ollama endpoint will reject all requests (401). Run 'make update' to regenerate the token."
+        fi
+    fi
 else
     count_error ".env file not found at $ENV_FILE"
     print_info "Run 'make install' to set up the environment."

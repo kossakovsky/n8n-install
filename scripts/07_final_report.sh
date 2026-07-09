@@ -109,6 +109,9 @@ fi
 if is_profile_active "gost"; then
     echo -e "     ${GREEN}*${NC} ${WHITE}Gost Proxy${NC}: Routing AI traffic through external proxy"
 fi
+if is_profile_active "cpu" || is_profile_active "gpu-nvidia" || is_profile_active "gpu-amd"; then
+    echo -e "     ${GREEN}*${NC} ${WHITE}Ollama API${NC}: To expose externally, point DNS at ${OLLAMA_HOSTNAME:-<OLLAMA_HOSTNAME>} and send 'Authorization: Bearer <token>' (see Welcome Page)"
+fi
 echo ""
 echo -e "  ${WHITE}4.${NC} Run ${CYAN}make doctor${NC} if you experience any issues"
 
