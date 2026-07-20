@@ -28,6 +28,17 @@ def is_dify_enabled():
     compose_profiles = env_values.get("COMPOSE_PROFILES", "")
     return "dify" in compose_profiles.split(',')
 
+def get_gpu_devices_compose_files():
+    """Return GPU pinning override files for services with *_GPU_DEVICES set in .env."""
+    env_values = dotenv_values(".env")
+    profiles = env_values.get("COMPOSE_PROFILES", "").split(',')
+    files = []
+    if "gpu-nvidia" in profiles and env_values.get("OLLAMA_GPU_DEVICES"):
+        files.append("docker-compose.ollama-gpu-devices.yml")
+    if "invokeai-nvidia" in profiles and env_values.get("INVOKEAI_GPU_DEVICES"):
+        files.append("docker-compose.invokeai-gpu-devices.yml")
+    return [f for f in files if os.path.exists(f)]
+
 def get_all_profiles(compose_file):
     """Get all profile names from a docker-compose file."""
     if not os.path.exists(compose_file):
@@ -411,6 +422,10 @@ def start_local_ai():
     n8n_workers_compose_path = "docker-compose.n8n-workers.yml"
     if os.path.exists(n8n_workers_compose_path):
         compose_files.extend(["-f", n8n_workers_compose_path])
+
+    # Include GPU pinning overrides when *_GPU_DEVICES is set in .env
+    for gpu_devices_compose_path in get_gpu_devices_compose_files():
+        compose_files.extend(["-f", gpu_devices_compose_path])
 
     # Include user overrides if present (must be last for highest precedence)
     override_path = "docker-compose.override.yml"

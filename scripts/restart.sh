@@ -8,6 +8,8 @@
 # Handles compose files via build_compose_files_array() from utils.sh:
 #   - docker-compose.yml (main)
 #   - docker-compose.n8n-workers.yml (if exists and n8n profile active)
+#   - docker-compose.ollama-gpu-devices.yml (if gpu-nvidia profile active and OLLAMA_GPU_DEVICES set)
+#   - docker-compose.invokeai-gpu-devices.yml (if invokeai-nvidia profile active and INVOKEAI_GPU_DEVICES set)
 #   - supabase/docker/docker-compose.yml (if exists and supabase profile active)
 #   - dify/docker/docker-compose.yaml (if exists and dify profile active)
 #   - docker-compose.override.yml (if exists, user overrides with highest precedence)
