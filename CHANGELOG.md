@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-07-20
+## [1.8.0] - 2026-07-20
 
 ### Added
 - **Ollama / InvokeAI** - Optional GPU pinning for multi-GPU hosts. Set `OLLAMA_GPU_DEVICES` / `INVOKEAI_GPU_DEVICES` in `.env` (e.g. `OLLAMA_GPU_DEVICES=1,2`) to restrict a service to specific NVIDIA GPU IDs, so different workloads can own different GPUs. When the variable is empty (default), the existing count-based `*_GPU_COUNT` behavior is unchanged. NVIDIA profiles only (AMD variants use full `/dev/kfd`/`/dev/dri` passthrough); requires Docker Compose v2.24.4+ (#83).
