@@ -31,7 +31,7 @@ def is_dify_enabled():
 def get_gpu_devices_compose_files():
     """Return GPU pinning override files for services with *_GPU_DEVICES set in .env."""
     env_values = dotenv_values(".env")
-    profiles = env_values.get("COMPOSE_PROFILES", "").split(',')
+    profiles = (env_values.get("COMPOSE_PROFILES") or "").split(',')
     files = []
     for var, profile, compose_file in [
         ("OLLAMA_GPU_DEVICES", "gpu-nvidia", "docker-compose.ollama-gpu-devices.yml"),

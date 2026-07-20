@@ -568,7 +568,7 @@ while IFS= read -r varName; do
         if [[ "$varValue" == *'$'* ]]; then
             echo "${varName}='${varValue}'" >> "$OUTPUT_FILE"
         else
-            echo "${varName}=\"${varValue}\"" >> "$OUTPUT_FILE"
+            echo "${varName}=\"${varValue//\"/\\\"}\"" >> "$OUTPUT_FILE"
         fi
         log_info "Preserved variable not present in template: $varName"
     fi
