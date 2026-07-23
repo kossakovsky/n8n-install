@@ -103,12 +103,16 @@ myapp.yourdomain.com {
 }
 ```
 
-For a service on the host machine, two more things are needed:
+For a service on the host machine, two more things are needed. First, find the subnet and gateway of this stack's Docker network:
 
-1. The service must listen on an interface reachable from Docker (e.g. `0.0.0.0`), not only `127.0.0.1`.
-2. The installer's firewall (UFW) blocks container-to-host traffic by default. Allow the port for the Docker subnet:
+```bash
+docker network inspect localai_default --format '{{range .IPAM.Config}}{{.Subnet}} (gateway {{.Gateway}}){{end}}'
+```
+
+1. The service must listen on an address the Caddy container can reach — not only `127.0.0.1`. Prefer the gateway IP from the command above over `0.0.0.0`, which would expose the service on every host interface and bypass Caddy if the firewall ever changes.
+2. The installer's firewall (UFW) blocks container-to-host traffic by default. Allow the port for the subnet from the command above, e.g.:
    ```bash
-   sudo ufw allow from 172.16.0.0/12 to any port 3000
+   sudo ufw allow from 172.18.0.0/16 to any port 3000
    ```
 
 ## Important Notes

@@ -298,7 +298,7 @@ This script will:
 
 ### Custom Configuration That Survives Updates
 
-`make update` resets tracked files (like `Caddyfile` and `docker-compose.yml`) to the latest version, so never edit them directly. Instead, use the dedicated extension points — all gitignored, so they are preserved across updates:
+`make update` resets tracked files (like `Caddyfile` and `docker-compose.yml`) to the latest version, so never edit them directly. Instead, use the dedicated extension points — the files you create there are gitignored, so they are preserved across updates:
 
 - **Custom Caddy entries** (e.g. reverse proxy for a service running outside this stack): drop a `site-*.conf` file into `caddy-addon/`. It is imported automatically by the main Caddyfile. See [caddy-addon/README.md](caddy-addon/README.md) for examples.
 - **Docker Compose overrides** (change any service property): create a `docker-compose.override.yml` in the project root. It is picked up automatically with the highest precedence.
