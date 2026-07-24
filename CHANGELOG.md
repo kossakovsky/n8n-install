@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-07-24
+
+### Added
+- **Ollama** - Two more runtime knobs are now configurable via `.env`: `OLLAMA_SCHED_SPREAD` (set to `1` to spread every model across all GPUs instead of packing each onto one GPU - packing can strand free VRAM on a multi-GPU host until a model fits nowhere and falls back to slow CPU/GPU hybrid execution) and `OLLAMA_KEEP_ALIVE` (how long an idle model stays in VRAM, e.g. `20m`, for faster switching between frequently used models). Both default to empty, so Ollama's stock behavior (spread off, keep-alive 5m) is unchanged for existing installs (#102).
+
 ## [1.8.1] - 2026-07-23
 
 ### Added
